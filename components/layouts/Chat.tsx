@@ -1,7 +1,7 @@
 "use client"
 
 import { useChat } from "@ai-sdk/react";
-import { useState, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import { convertFilesToDataURLs } from "@/lib/utils";
 import ChatMessages from "../chat/ChatMessages";
@@ -9,6 +9,7 @@ import ChatInput from "../chat/ChatInput";
 import { Suggestion, Suggestions } from '@/components/ai/suggestion';
 import WelcomeMessage from "../chat/WelcomeMessage";
 import { toast } from "sonner";
+import { useSearchParams } from "next/navigation";
 
 const MAX_FILES = 5;
 const MAX_SIZE_MB = 10;
@@ -17,6 +18,7 @@ export default function Chat() {
   const [input, setInput] = useState<string>('');
   const [files, setFiles] = useState<FileList | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const searchParams = useSearchParams()
 
   const suggestions = [
     'What is AI and how does it work?',
@@ -25,6 +27,13 @@ export default function Chat() {
   ];
 
   const { messages, status, sendMessage, regenerate } = useChat();
+
+  useEffect(() => {
+    const query = searchParams.get("q");
+    if (query) {
+      setInput(query);
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
