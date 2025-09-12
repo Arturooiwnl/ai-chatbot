@@ -24,13 +24,17 @@ export default function Chat() {
     'How can I improve my productivity?',
   ];
 
-  const { messages, status, sendMessage, regenerate } = useChat();
+  const { messages, status, sendMessage, regenerate, error } = useChat();
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const query = params.get("q");
     if (query) setInput(query);
   }, []);
+
+  if (error){
+    toast.error(`An error has occurred: ${error}.`)
+  }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -170,7 +174,7 @@ export default function Chat() {
 
       <div className={cn(
         "flex flex-col transition-all duration-500 ease-in-out",
-        hasMessages ? "h-0 opacity-0 overflow-hidden" : "h-[70%] opacity-100"
+        hasMessages ? "h-0 opacity-0 overflow-hidden" : "h-[60%] opacity-100"
       )}>
         <div className={cn(
           "transform transition-all self-center duration-700 ease-out delay-100",

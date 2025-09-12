@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useState } from 'react';
 import { FilePreviewCardProps } from '@/lib/types';
+import Image from 'next/image';
 
 export default function FileChatCard({ url, filename, content }: FilePreviewCardProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -111,9 +112,22 @@ export default function FileChatCard({ url, filename, content }: FilePreviewCard
           className="group my-2 p-4 bg-background/80 border border-border/70 rounded-xl cursor-pointer hover:border-border transition-all duration-300 hover:shadow-sm"
         >
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
-              {getIcon()}
-            </div>
+            {fileType === 'image' ? (
+              <div className="relative w-full rounded-lg flex-shrink-0 overflow-hidden">
+              <Image
+                src={url}
+                width={400}
+                height={300}
+                alt={filename}
+                className="rounded-lg border max-w-full h-auto"
+              />
+            <ExternalLink className="top-2 right-2 absolute opacity-0 group-hover:opacity-100 transition-opacity duration-300 size-4 text-muted-foreground" />
+              </div>
+            ) : (
+              <div className='flex items-center gap-2'>
+              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+          {getIcon()}
+              </div>
             <div className="flex-1 min-w-0">
               <h4 className="font-medium text-foreground truncate group-hover:text-accent-foreground transition-all duration-300">
                 {filename}
@@ -123,14 +137,13 @@ export default function FileChatCard({ url, filename, content }: FilePreviewCard
             <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
               <ExternalLink className="size-4 text-muted-foreground" />
             </div>
-          </div>
-          <div className="mt-2 text-xs text-muted-foreground">
-            Click to open
+              </div>
+            )}
           </div>
         </div>
       </DialogTrigger>
       
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+      <DialogContent className="md:max-w-4xl overflow-hidden [&>button]:cursor-pointer">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {getIcon()}
@@ -149,7 +162,7 @@ export default function FileChatCard({ url, filename, content }: FilePreviewCard
           <div className="text-sm text-muted-foreground">
             {getTypeLabel()}
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 [&>button]:cursor-pointer">
             <Button 
               onClick={handleFileDownload} 
               variant="outline"

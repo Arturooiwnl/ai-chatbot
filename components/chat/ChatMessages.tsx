@@ -129,14 +129,12 @@ export default function ChatMessages({ messages, status, regenerate }: ChatMessa
                     case "file":
                       if (part.mediaType?.startsWith("image/")) {
                         return (
-                          <div key={`${message.id}-${i}`} className="my-2">
-                            <Image
-                              src={part.url}
-                              width={400}
-                              height={300}
-                              alt={`attachment-${i}`}
-                              className="rounded-lg border max-w-full h-auto"
-                            />
+                          <div key={`${message.id}-${i}`}>
+                          <FileChatCard
+                            key={`${message.id}-${i}`}
+                            url={part.url}
+                            filename={part.filename || ""}
+                          />
                           </div>
                         );
                       }
