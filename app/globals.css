@@ -1,14 +1,11 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@source "../node_modules/streamdown/dist/index.js";
 
 @custom-variant dark (&:is(.dark *));
 
 a{
   @apply text-muted-foreground hover:text-foreground transition-all duration-200 underline
-}
-
-pre{
-  @apply overflow-x-auto font-mono text-xs p-4 bg-muted [&>code]:saturate-200 [&>code]:brightness-200
 }
 
 :root {
