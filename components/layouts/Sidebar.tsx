@@ -11,7 +11,8 @@ import {
 import { useTheme } from "next-themes"
 import { cn } from "@/lib/utils";
 import { Settings, Sun, Moon, Monitor, PanelLeftClose } from "lucide-react";
-import { Button } from "../ui/button";
+import { GitHub } from "@/components/icons";
+import { Button } from "@/components/ui/button";
 
 export function Sidebar() {
   const [isOpen, setIsOpen] = useState<boolean>(false);
@@ -44,15 +45,9 @@ export function Sidebar() {
         isOpen ? "translate-x-0" : "translate-x-[-100%]"
       )}
     >   
-        <div className="py-2 self-center">
-        </div>
 
-      <div className={cn(
-        "space-y-4",
-        !isOpen ? "hidden" : "block"
-      )}>
         <div className={cn(
-          "p-4 space-y-2 transition-opacity duration-200 delay-200",
+          "flex-1 p-4 space-y-2 transition-opacity duration-200 delay-200",
           isOpen ? "opacity-100" : "opacity-0"
         )}>
           <div className="flex items-center space-x-2">
@@ -85,7 +80,19 @@ export function Sidebar() {
             </SelectContent>
           </Select>
         </div>
-      </div>
+      <footer className={cn(
+        "mb-2 flex justify-center text-sm transition-opacity duration-200 delay-200",
+        isOpen ? "opacity-100" : "opacity-0"
+      )}>
+        <a 
+        className="flex items-center gap-2 bg-accent px-2 py-1 rounded-full hover:text-primary transition-all duration-300"
+        target="_Blank"
+        rel="noopener noreferrer"
+        href="https://github.com/Arturooiwnl/ai-chatbot">
+          <GitHub/> 
+          Arturooiwnl / ai-chatbot
+        </a>
+      </footer>
     </aside>
     </>
   );
