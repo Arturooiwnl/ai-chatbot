@@ -9,7 +9,7 @@ export interface ChatMessagesProps {
 }
 
 export interface ChatInputProps {
-    input?: string;
+    input: string;
     setInput: (input: string) => void;
     status: ChatStatus;
     handleSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
@@ -17,6 +17,9 @@ export interface ChatInputProps {
     onFileSelect: () => void;
     onPaste: (event: React.ClipboardEvent<HTMLTextAreaElement>) => void;
     onRemoveFile: (index: number) => void;
+    onDropFile: (event: React.DragEvent<HTMLDivElement>) => void;
+    autoReasoning: boolean;
+    setAutoReasoning: (autoReasoning: boolean) => void;
 }
 
 // ------------- FILES -------------

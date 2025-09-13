@@ -6,7 +6,7 @@ import { streamText, convertToModelMessages, type UIMessage } from 'ai';
 export const maxDuration = 30;
 
 export async function POST(req: Request) {
-  const { messages }: { model: string; messages: UIMessage[] } = await req.json();
+  const { messages, autoReasoning}: { autoReasoning: boolean ,messages: UIMessage[] } = await req.json();
 
   const result = streamText({
     system: 'You are a helpful assistant.',
@@ -16,13 +16,13 @@ export async function POST(req: Request) {
       url_context: google.tools.urlContext({}),
       google_search: google.tools.googleSearch({})
     },
-    providerOptions: {
-      google: {
-      thinkingConfig: {
-        thinkingBudget: 8192,
-        includeThoughts: true,
-      },
-      }
+      providerOptions: {
+        google: {
+        thinkingConfig: {
+          thinkingBudget: 8192,
+          includeThoughts: autoReasoning ? true : false,
+        },
+        }
     }
   });
 
@@ -35,7 +35,6 @@ export async function POST(req: Request) {
           return "Rate limit exceeded. Please try again later.";
         }
       }
-      console.error(error);
       return "An error occurred.";
     },
   });

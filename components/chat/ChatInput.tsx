@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import {
   PromptInput,
   PromptInputButton,
@@ -9,7 +9,7 @@ import {
   PromptInputToolbar,
   PromptInputTools,
 } from '@/components/ai/prompt-input';
-import { Paperclip } from 'lucide-react';
+import { Brain, Paperclip, Upload } from 'lucide-react';
 import { FileInputCard } from './FileInputCard';
 import { ChatInputProps } from '@/lib/types';
 import { motion, AnimatePresence } from "motion/react"
@@ -22,13 +22,34 @@ export default function ChatInput({
   files,
   onFileSelect,
   onPaste,
-  onRemoveFile
+  onRemoveFile,
+  onDropFile,
+  autoReasoning,
+  setAutoReasoning,
 }: ChatInputProps) {
 
+  const [isDragging, setIsDragging] = useState<boolean>(false);
   const chatInputRef = useRef<HTMLTextAreaElement>(null);
 
   const handleChatInputClick = () => {
     chatInputRef.current?.focus();
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      setIsDragging(false);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+    onDropFile(e);
   };
 
   return (
@@ -56,37 +77,75 @@ export default function ChatInput({
         </div>
       )}
       </AnimatePresence>
-      <PromptInput 
-        onClick={handleChatInputClick} 
-        onSubmit={handleSubmit}         
-        className={`${files && files.length > 0 ? 'relative group rounded-b-2xl rounded-t-none' : 'rounded-2xl'} z-20 cursor-text p-2 border-border/30 hover:border-border focus-within:border-border transition-all duration-300`}
+      
+      <div 
+        className='relative group z-20 w-full'
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
       >
-        <PromptInputTextarea
-          ref={chatInputRef}
-          onPaste={onPaste}
-          onChange={(e) => setInput(e.target.value)}
-          value={input}
-        />
-        <PromptInputToolbar className='p-1'>
-          <PromptInputTools>
-            <PromptInputButton 
-              variant="outline"
-              size="icon"
-              className='cursor-pointer disabled:cursor-not-allowed rounded-xl'
-              onClick={onFileSelect} 
-              type="button"
+        <AnimatePresence>
+          {isDragging && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="absolute inset-0 z-30 rounded-2xl bg-accent/80 backdrop-blur-sm border-2 border-dashed border-primary/60 pointer-events-none"
             >
-              <Paperclip size={16} />
-              Files
-            </PromptInputButton>
-          </PromptInputTools>
-          <PromptInputSubmit 
-            className='rounded-xl'
-            disabled={!input} 
-            status={status} 
+              <div className="flex flex-col items-center justify-center h-full text-primary">
+                <Upload size={32} className="mb-2" />
+                <span className="text-sm font-medium">
+                  Drop your files here
+                </span>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <PromptInput 
+          onClick={handleChatInputClick} 
+          onSubmit={handleSubmit}         
+          className={`${files && files.length > 0 ? 'rounded-b-2xl rounded-t-none' : 'rounded-2xl'} cursor-text p-2 border-border/30 hover:border-border focus-within:border-border transition-all duration-300`}
+        >
+          <PromptInputTextarea
+            ref={chatInputRef}
+            onPaste={onPaste}
+            onChange={(e) => setInput(e.target.value)}
+            value={input}
           />
-        </PromptInputToolbar>
-      </PromptInput>
+          <PromptInputToolbar className='p-1'>
+            <PromptInputTools>
+              <PromptInputButton 
+                variant="outline"
+                size="icon"
+                className='cursor-pointer disabled:cursor-not-allowed rounded-xl'
+                onClick={onFileSelect} 
+                disabled={status === "streaming"}
+                type="button"
+              >
+                <Paperclip size={16} />
+              </PromptInputButton>
+              <PromptInputButton
+                variant="outline"
+                size="icon"
+                className={`cursor-pointer disabled:cursor-not-allowed rounded-xl ${autoReasoning ? 'dark:bg-accent/50 dark:border-accent-foreground/20 border-accent-foreground/30 bg-muted/50': ''}`}
+                onClick={() => setAutoReasoning(!autoReasoning)}
+                disabled={status === "streaming"}
+                type="button"
+              >
+                <Brain size={16} />
+                {autoReasoning ? 'Auto Think': 'No Think'}
+              </PromptInputButton>
+            </PromptInputTools>
+            <PromptInputSubmit 
+              className='rounded-xl'
+              disabled={!input} 
+              status={status} 
+            />
+          </PromptInputToolbar>
+        </PromptInput>
+      </div>
 
     </div>
   );

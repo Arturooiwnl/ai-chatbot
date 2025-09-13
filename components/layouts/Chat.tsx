@@ -16,6 +16,7 @@ const MAX_SIZE_MB = 10;
 export default function Chat() {
   const [input, setInput] = useState<string>('');
   const [files, setFiles] = useState<FileList | null>(null);
+  const [autoReasoning, setAutoReasoning]= useState<boolean>(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const suggestions = [
@@ -51,6 +52,11 @@ export default function Chat() {
         role: "user",
         parts: [{type: 'text', text: input}, ...fileParts],
       },
+      {
+        body:{
+          autoReasoning: autoReasoning,
+        },
+      },
     );
     
     setInput('');
@@ -63,6 +69,55 @@ export default function Chat() {
   const handleSuggestionClick = (suggestion: string) => {
     setInput(suggestion);
   };
+
+const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
+  event.preventDefault();
+
+  if (event.dataTransfer.files && event.dataTransfer.files.length > 0) {
+    const droppedFiles = Array.from(event.dataTransfer.files);
+
+    if (droppedFiles.length > MAX_FILES) {
+      toast.error(`You can select a maximum of ${MAX_FILES} files.`);
+      return;
+    }
+
+    const allowedTypes = ["image/jpeg", "image/png", "application/pdf"];
+    const invalidFile = droppedFiles.find(file => !allowedTypes.includes(file.type));
+
+    if (invalidFile) {
+      toast.error("Only JPG, PNG, and PDF files are allowed.");
+      return;
+    }
+
+    const largeFile = droppedFiles.find(
+      (file) => file.size > MAX_SIZE_MB * 1024 * 1024
+    );
+    if (largeFile) {
+      toast.error(
+        `The file "${largeFile.name}" exceeds the maximum size of ${MAX_SIZE_MB}MB.`
+      );
+      return;
+    }
+
+    // es:combinar con los archivos ya seleccionados
+    // en: Merge with already selected files
+    const dt = new DataTransfer();
+    const existingFiles = files ? Array.from(files) : [];
+    const combinedFiles = [...existingFiles, ...droppedFiles];
+
+    if (combinedFiles.length > MAX_FILES) {
+      toast.error(`You can select a maximum of ${MAX_FILES} files.`);
+      return;
+    }
+
+    combinedFiles.forEach(file => dt.items.add(file));
+    setFiles(dt.files);
+
+    if (fileInputRef.current) {
+      fileInputRef.current.files = dt.files;
+    }
+  }
+};
 
   const handleFileSelect = () => {
     fileInputRef.current?.click();
@@ -196,6 +251,9 @@ export default function Chat() {
             onFileSelect={handleFileSelect}
             onPaste={handlePaste}
             onRemoveFile={removeFile}
+            onDropFile={handleDrop}
+            setAutoReasoning={setAutoReasoning}
+            autoReasoning={autoReasoning}
           />
           <Suggestions className="mb-2 w mx-auto">
             {suggestions.map((suggestion) => (
@@ -225,6 +283,9 @@ export default function Chat() {
           onFileSelect={handleFileSelect}
           onPaste={handlePaste}
           onRemoveFile={removeFile}
+          onDropFile={handleDrop}
+          setAutoReasoning={setAutoReasoning}
+          autoReasoning={autoReasoning}
         />
       </div>
     </section>
