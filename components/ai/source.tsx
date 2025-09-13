@@ -6,14 +6,14 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
-import { BookIcon, ChevronDownIcon } from 'lucide-react';
+import { ChevronDownIcon, GlobeIcon } from 'lucide-react';
 import type { ComponentProps } from 'react';
 
 export type SourcesProps = ComponentProps<'div'>;
 
 export const Sources = ({ className, ...props }: SourcesProps) => (
   <Collapsible
-    className={cn('not-prose mb-4 text-primary text-xs', className)}
+    className={cn('not-prose mb-4 text-xs', className)}
     {...props}
   />
 );
@@ -28,7 +28,7 @@ export const SourcesTrigger = ({
   children,
   ...props
 }: SourcesTriggerProps) => (
-  <CollapsibleTrigger className="flex items-center gap-2 cursor-pointer" {...props}>
+  <CollapsibleTrigger className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-all duration-200 cursor-pointer" {...props}>
     {children ?? (
       <>
         <p className="font-medium">Used {count} sources</p>
@@ -65,10 +65,10 @@ export const Source = ({ href, title, children, ...props }: SourceProps) => (
     {...props}
   >
     {children ?? (
-      <>
-        <BookIcon className="h-4 w-4" />
-        <span className="block font-medium">{title}</span>
-      </>
+      <div className='flex items-center gap-2 border px-1 py-1 rounded-full bg-card text-muted-foreground hover:text-foreground transition-all duration-200'>
+        <GlobeIcon className="h-4 w-4" />
+        <span className="block font-medium truncate max-w-3xs md:max-w-md">{title}</span>
+      </div>
     )}
   </a>
 );
