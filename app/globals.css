@@ -4,10 +4,6 @@
 
 @custom-variant dark (&:is(.dark *));
 
-a{
-  @apply text-muted-foreground hover:text-foreground transition-all duration-200 underline
-}
-
 :root {
   --background: #f0f0f0;
   --foreground: #333333;
