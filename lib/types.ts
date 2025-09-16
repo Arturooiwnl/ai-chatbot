@@ -1,11 +1,15 @@
 import { UIMessage } from "ai"
-import type { ChatRequestOptions, ChatStatus } from 'ai';
+import type {ChatStatus} from 'ai';
 
 // ------------- CHAT ------------- 
+
 export interface ChatMessagesProps {
     status: ChatStatus;
     messages: UIMessage[];
     regenerate: () => void;
+    suggestions?: string[];
+    suggestion: string;
+    setSuggestion: (suggestion: string) => void;
 }
 
 export interface ChatInputProps {
