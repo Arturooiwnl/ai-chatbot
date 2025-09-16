@@ -20,6 +20,32 @@ export const metadata: Metadata = {
   description: "Multi-modal AI chat powered by Google models.",
   keywords: ["AI", "Chatbot", "Multi-modal", "Vercel", "Google", "AI SDK"],
   creator: "Arturo Perotto",
+  openGraph: {
+    title: "AI Chat - Assistant",
+    description: "Multi-modal AI chat powered by Google models.",
+    url: "https://ai.arturoiwnl.pro/",
+    siteName: "Arturo Perotto",
+    images: [
+      {
+        url: "https://ai.arturoiwnl.pro/og/bg-og.jpg",
+        alt: "AI chatbot image",
+      },
+    ],
+    locale: "es_EN",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "AI Chat - Assistant",
+    description: "Multi-modal AI chat powered by Google models.",
+    site: "@ArturoPerotto",
+    images: [
+      {
+        url: "https://ai.arturoiwnl.pro/og/bg-og.jpg",
+        alt: "AI chatbot image",
+      },
+    ],
+  },
 };
 
 export default function RootLayout({
