@@ -109,6 +109,7 @@ export default function ChatInput({
           className={`${files && files.length > 0 ? 'rounded-b-2xl rounded-t-none' : 'rounded-2xl'} cursor-text p-2 border-border/30 hover:border-border focus-within:border-border transition-all duration-300`}
         >
           <PromptInputTextarea
+            status={status}
             ref={chatInputRef}
             onPaste={onPaste}
             onChange={(e) => setInput(e.target.value)}
@@ -139,8 +140,9 @@ export default function ChatInput({
               </PromptInputButton>
             </PromptInputTools>
             <PromptInputSubmit 
+              tooltip={true}
               className='rounded-xl'
-              disabled={!input} 
+              disabled={!input && !status} 
               status={status} 
             />
           </PromptInputToolbar>

@@ -15,12 +15,12 @@ export const Suggestions = ({
   children,
   ...props
 }: SuggestionsProps) => (
-  <ScrollArea className="w-full overflow-x-auto whitespace-nowrap" {...props}>
-    <div className={cn('flex w-max flex-nowrap items-center gap-2', className)}>
-      {children}
-    </div>
-    <ScrollBar className="hidden" orientation="horizontal" />
-  </ScrollArea>
+    <ScrollArea className="max-w-[700px] mx-auto w-full overflow-x-auto whitespace-nowrap px-1" {...props}>
+      <div className={cn('flex w-max flex-nowrap items-center gap-2', className)}>
+        {children}
+      </div>
+      <ScrollBar className="hidden" orientation="horizontal" />
+    </ScrollArea>
 );
 
 export type SuggestionProps = Omit<ComponentProps<typeof Button>, 'onClick'> & {

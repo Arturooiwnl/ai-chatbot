@@ -22,12 +22,19 @@ import { Response } from "@/components/ai/response";
 import { Actions, Action } from "@/components/ai/actions";
 import { ChatMessagesProps } from "@/lib/types";
 import { Loader } from "../ai/loader";
-import Image from "next/image";
 import FileChatCard from "./FileChatCard";
 import { RefreshCcwIcon, CopyIcon, CheckIcon } from "lucide-react";
 import { Fragment } from "react";
+import { Button } from "../ui/button";
 
-export default function ChatMessages({ messages, status, regenerate }: ChatMessagesProps) {
+export default function ChatMessages({
+  messages,
+  status,
+  regenerate,
+  suggestions,
+  suggestion,
+  setSuggestion,
+}: ChatMessagesProps) {
   const [isMessageCopied, setIsMessageCopied] = useState<boolean>(false);
 
   const handleMessageCopy = (text: string) => {
@@ -50,62 +57,80 @@ export default function ChatMessages({ messages, status, regenerate }: ChatMessa
                         messageIndex === messages.length - 1;
                       return (
                         <div key={`${message.role}-${message.id}-${i}`}>
-                          <Response>
-                            {part.text}
-                          </Response>
-                        {message.role === "assistant" &&
-                          message.parts.some((part) => part.type === "source-url") && (
-                            <Sources className="mt-4">
-                              <SourcesTrigger
-                                count={
-                                  message.parts.filter(
-                                    (part) => part.type === "source-url"
-                                  ).length
-                                }
-                              />
-                              <SourcesContent>
-                                {message.parts
-                                  .filter((part) => part.type === "source-url")
-                                  .map((part, i) => (
-                                    <Source
-                                      key={`${message.id}-source-${i}`}
-                                      href={part.url}
-                                      title={part.url}
-                                    />
-                                  ))}
-                              </SourcesContent>
-                            </Sources>
-                          )}
+                          <Response>{part.text}</Response>
+                          {message.role === "assistant" &&
+                            message.parts.some(
+                              (part) => part.type === "source-url"
+                            ) && (
+                              <Sources className="mt-4">
+                                <SourcesTrigger
+                                  count={
+                                    message.parts.filter(
+                                      (part) => part.type === "source-url"
+                                    ).length
+                                  }
+                                />
+                                <SourcesContent>
+                                  {message.parts
+                                    .filter(
+                                      (part) => part.type === "source-url"
+                                    )
+                                    .map((part, i) => (
+                                      <Source
+                                        key={`${message.id}-source-${i}`}
+                                        href={part.url}
+                                        title={part.url}
+                                      />
+                                    ))}
+                                </SourcesContent>
+                              </Sources>
+                            )}
                           {message.role === "assistant" &&
                             isLastMessage &&
                             status !== "streaming" && (
-                              <Actions className="mt-2 [&>button]:cursor-pointer">
-                                <Action
-                                  tooltip="Retry"
-                                  onClick={() => regenerate()}
-                                  label="Retry"
-                                >
-                                  <RefreshCcwIcon className="size-3" />
-                                </Action>
-                                <Action
-                                tooltip="Copy"
-                                  onClick={() =>
-                                    handleMessageCopy(
-                                      message.parts
-                                        .filter((part) => part.type === "text")
-                                        .map((part) => part.text)
-                                        .join(" ")
-                                    )
-                                  }
-                                  label="Copy"
-                                >
-                                  {isMessageCopied ? (
-                                    <CheckIcon className="size-3" />
-                                  ) : (
-                                    <CopyIcon className="size-3" />
-                                  )}
-                                </Action>
-                              </Actions>
+                              <div>
+                                <div className="flex flex-col gap-2 mt-2">
+                                  {suggestions?.map((suggestion, index) => (
+                                  <Button
+                                    key={index}
+                                    variant="outline"
+                                    className={`cursor-pointer text-xs md:text-sm rounded-xl justify-start w-fit whitespace-normal break-words text-left py-6 md:py-0 ${suggestion.length > 75 && 'md:py-6'}`}
+                                    onClick={() => setSuggestion(suggestion)}
+                                  >
+                                    {suggestion}
+                                  </Button>
+                                  ))}
+                                </div>
+                                <Actions className="mt-2 [&>button]:cursor-pointer">
+                                  <Action
+                                    tooltip="Retry"
+                                    onClick={() => regenerate()}
+                                    label="Retry"
+                                  >
+                                    <RefreshCcwIcon className="size-3" />
+                                  </Action>
+                                  <Action
+                                    tooltip="Copy"
+                                    onClick={() =>
+                                      handleMessageCopy(
+                                        message.parts
+                                          .filter(
+                                            (part) => part.type === "text"
+                                          )
+                                          .map((part) => part.text)
+                                          .join(" ")
+                                      )
+                                    }
+                                    label="Copy"
+                                  >
+                                    {isMessageCopied ? (
+                                      <CheckIcon className="size-3" />
+                                    ) : (
+                                      <CopyIcon className="size-3" />
+                                    )}
+                                  </Action>
+                                </Actions>
+                              </div>
                             )}
                         </div>
                       );
@@ -130,11 +155,11 @@ export default function ChatMessages({ messages, status, regenerate }: ChatMessa
                       if (part.mediaType?.startsWith("image/")) {
                         return (
                           <div key={`${message.id}-${i}`}>
-                          <FileChatCard
-                            key={`${message.id}-${i}`}
-                            url={part.url}
-                            filename={part.filename || ""}
-                          />
+                            <FileChatCard
+                              key={`${message.id}-${i}`}
+                              url={part.url}
+                              filename={part.filename || ""}
+                            />
                           </div>
                         );
                       }

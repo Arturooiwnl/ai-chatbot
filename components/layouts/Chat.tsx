@@ -1,31 +1,38 @@
-"use client"
+"use client";
 
-import { useChat } from "@ai-sdk/react";
 import { useState, useEffect, useRef } from "react";
+import { useChat, experimental_useObject as useObject } from "@ai-sdk/react";
+import { suggestionsSchema } from "@/app/api/suggestions/route";
 import { cn } from "@/lib/utils";
 import { convertFilesToDataURLs } from "@/lib/utils";
 import ChatMessages from "../chat/ChatMessages";
 import ChatInput from "../chat/ChatInput";
-import { Suggestion, Suggestions } from '@/components/ai/suggestion';
+import { Suggestion, Suggestions } from "@/components/ai/suggestion";
 import WelcomeMessage from "../chat/WelcomeMessage";
 import { toast } from "sonner";
 
 const MAX_FILES = 5;
 const MAX_SIZE_MB = 10;
+const ALLOWED_FILE_TYPES = ["image/jpeg", "image/png", "application/pdf"];
 
 export default function Chat() {
-  const [input, setInput] = useState<string>('');
+  const [input, setInput] = useState<string>("");
   const [files, setFiles] = useState<FileList | null>(null);
-  const [autoReasoning, setAutoReasoning]= useState<boolean>(true);
+  const [autoReasoning, setAutoReasoning] = useState<boolean>(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const suggestions = [
-    'What is AI and how does it work?',
-    'Give me some tips for better sleep.',
-    'How can I improve my productivity?',
+  const DefaultSuggestions = [
+    "What is AI and how does it work?",
+    "Give me some tips for better sleep.",
+    "How can I improve my productivity?",
   ];
 
   const { messages, status, sendMessage, regenerate, error } = useChat();
+
+  const { object, submit, isLoading } = useObject({
+    api: "/api/suggestions",
+    schema: suggestionsSchema,
+  });
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -33,8 +40,8 @@ export default function Chat() {
     if (query) setInput(query);
   }, []);
 
-  if (error){
-    toast.error(`An error has occurred: ${error}.`)
+  if (error) {
+    toast.error(`An error has occurred: ${error.message}.`);
   }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -43,26 +50,26 @@ export default function Chat() {
     if (!input.trim()) return;
 
     const fileParts =
-      files && files.length > 0
-      ? await convertFilesToDataURLs(files)
-      : [];
+      files && files.length > 0 ? await convertFilesToDataURLs(files) : [];
 
     sendMessage(
-      { 
+      {
         role: "user",
-        parts: [{type: 'text', text: input}, ...fileParts],
+        parts: [{ type: "text", text: input }, ...fileParts],
       },
       {
-        body:{
+        body: {
           autoReasoning: autoReasoning,
         },
-      },
+      }
     );
-    
-    setInput('');
+
+    submit({ prompt: input });
+
+    setInput("");
     setFiles(null);
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
   };
 
@@ -70,54 +77,55 @@ export default function Chat() {
     setInput(suggestion);
   };
 
-const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
-  event.preventDefault();
+  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
 
-  if (event.dataTransfer.files && event.dataTransfer.files.length > 0) {
-    const droppedFiles = Array.from(event.dataTransfer.files);
+    if (event.dataTransfer.files && event.dataTransfer.files.length > 0) {
+      const droppedFiles = Array.from(event.dataTransfer.files);
 
-    if (droppedFiles.length > MAX_FILES) {
-      toast.error(`You can select a maximum of ${MAX_FILES} files.`);
-      return;
-    }
+      if (droppedFiles.length > MAX_FILES) {
+        toast.error(`You can select a maximum of ${MAX_FILES} files.`);
+        return;
+      }
 
-    const allowedTypes = ["image/jpeg", "image/png", "application/pdf"];
-    const invalidFile = droppedFiles.find(file => !allowedTypes.includes(file.type));
-
-    if (invalidFile) {
-      toast.error("Only JPG, PNG, and PDF files are allowed.");
-      return;
-    }
-
-    const largeFile = droppedFiles.find(
-      (file) => file.size > MAX_SIZE_MB * 1024 * 1024
-    );
-    if (largeFile) {
-      toast.error(
-        `The file "${largeFile.name}" exceeds the maximum size of ${MAX_SIZE_MB}MB.`
+      const invalidFile = droppedFiles.find(
+        (file) => !ALLOWED_FILE_TYPES.includes(file.type)
       );
-      return;
+
+      if (invalidFile) {
+        toast.error("Only JPG, PNG, and PDF files are allowed.");
+        return;
+      }
+
+      const largeFile = droppedFiles.find(
+        (file) => file.size > MAX_SIZE_MB * 1024 * 1024
+      );
+      if (largeFile) {
+        toast.error(
+          `The file "${largeFile.name}" exceeds the maximum size of ${MAX_SIZE_MB}MB.`
+        );
+        return;
+      }
+
+      // es:combinar con los archivos ya seleccionados
+      // en: Merge with already selected files
+      const dt = new DataTransfer();
+      const existingFiles = files ? Array.from(files) : [];
+      const combinedFiles = [...existingFiles, ...droppedFiles];
+
+      if (combinedFiles.length > MAX_FILES) {
+        toast.error(`You can select a maximum of ${MAX_FILES} files.`);
+        return;
+      }
+
+      combinedFiles.forEach((file) => dt.items.add(file));
+      setFiles(dt.files);
+
+      if (fileInputRef.current) {
+        fileInputRef.current.files = dt.files;
+      }
     }
-
-    // es:combinar con los archivos ya seleccionados
-    // en: Merge with already selected files
-    const dt = new DataTransfer();
-    const existingFiles = files ? Array.from(files) : [];
-    const combinedFiles = [...existingFiles, ...droppedFiles];
-
-    if (combinedFiles.length > MAX_FILES) {
-      toast.error(`You can select a maximum of ${MAX_FILES} files.`);
-      return;
-    }
-
-    combinedFiles.forEach(file => dt.items.add(file));
-    setFiles(dt.files);
-
-    if (fileInputRef.current) {
-      fileInputRef.current.files = dt.files;
-    }
-  }
-};
+  };
 
   const handleFileSelect = () => {
     fileInputRef.current?.click();
@@ -153,7 +161,7 @@ const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
     if (items) {
       const newFiles: File[] = [];
       for (let i = 0; i < items.length; i++) {
-        if (items[i].kind === 'file' && items[i].type.startsWith('image/')) {
+        if (items[i].kind === "file" && items[i].type.startsWith("image/")) {
           const file = items[i].getAsFile();
           if (file) {
             newFiles.push(file);
@@ -162,8 +170,8 @@ const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
       }
 
       if (newFiles.length > 0) {
-        event.preventDefault(); 
-        
+        event.preventDefault();
+
         const dt = new DataTransfer();
         const existingFiles = files ? Array.from(files) : [];
         const combinedFiles = [...existingFiles, ...newFiles];
@@ -183,7 +191,7 @@ const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
           return;
         }
 
-        combinedFiles.forEach(file => dt.items.add(file));
+        combinedFiles.forEach((file) => dt.items.add(file));
         setFiles(dt.files);
         if (fileInputRef.current) {
           fileInputRef.current.files = dt.files;
@@ -220,32 +228,51 @@ const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
         multiple
       />
 
-      <div className={cn(
-        "flex-1 transition-all duration-500 ease-in-out overflow-hidden",
-        hasMessages ? "opacity-100" : "opacity-0 h-0"
-      )}>
-          <ChatMessages regenerate={regenerate} messages={messages} status={status} />
+      <div
+        className={cn(
+          "flex-1 transition-all duration-500 ease-in-out overflow-hidden",
+          hasMessages ? "opacity-100" : "opacity-0 h-0"
+        )}
+      >
+        <ChatMessages
+          regenerate={regenerate}
+          messages={messages}
+          status={status}
+          suggestions={object?.suggestions?.filter(
+            (s): s is string => s !== undefined
+          )}
+          setSuggestion={setInput}
+          suggestion={input}
+        />
       </div>
 
-      <div className={cn(
-        "flex flex-col transition-all duration-500 ease-in-out",
-        hasMessages ? "h-0 opacity-0 overflow-hidden" : "h-[60%] opacity-100"
-      )}>
-        <div className={cn(
-          "transform transition-all self-center duration-700 ease-out delay-100",
-          hasMessages ? "translate-y-8 opacity-0 scale-95" : "translate-y-0 opacity-100 scale-100"
-        )}>
+      <div
+        className={cn(
+          "flex flex-col transition-all duration-500 ease-in-out",
+          hasMessages ? "h-0 opacity-0 overflow-hidden" : "h-[60%] opacity-100"
+        )}
+      >
+        <div
+          className={cn(
+            "transform transition-all self-center duration-700 ease-out delay-100",
+            hasMessages
+              ? "translate-y-8 opacity-0 scale-95"
+              : "translate-y-0 opacity-100 scale-100"
+          )}
+        >
           <WelcomeMessage />
         </div>
-        
-        <div className={cn(
-          "transition-all duration-500 ease-in-out px-2",
-          hasMessages ? "opacity-0 pointer-events-none" : "opacity-100"
-        )}>
-          <ChatInput 
-            handleSubmit={handleSubmit} 
-            status={status} 
-            input={input} 
+
+        <div
+          className={cn(
+            "transition-all duration-500 ease-in-out px-2",
+            hasMessages ? "opacity-0 pointer-events-none" : "opacity-100"
+          )}
+        >
+          <ChatInput
+            handleSubmit={handleSubmit}
+            status={status}
+            input={input}
             setInput={setInput}
             files={files}
             onFileSelect={handleFileSelect}
@@ -256,7 +283,7 @@ const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
             autoReasoning={autoReasoning}
           />
           <Suggestions className="mb-2 w mx-auto">
-            {suggestions.map((suggestion) => (
+            {DefaultSuggestions.map((suggestion) => (
               <Suggestion
                 className="rounded-xl"
                 key={suggestion}
@@ -268,16 +295,18 @@ const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
         </div>
       </div>
 
-      <div className={cn(
-        "flex-shrink-0 transition-all duration-500 ease-in-out transform px-2",
-        hasMessages 
-          ? "opacity-100 translate-y-0 pointer-events-auto" 
-          : "opacity-0 pointer-events-none h-0 overflow-hidden"
-      )}>
-        <ChatInput 
-          handleSubmit={handleSubmit} 
-          status={status} 
-          input={input} 
+      <div
+        className={cn(
+          "flex-shrink-0 transition-all duration-500 ease-in-out transform px-2",
+          hasMessages
+            ? "opacity-100 translate-y-0 pointer-events-auto"
+            : "opacity-0 pointer-events-none h-0 overflow-hidden"
+        )}
+      >
+        <ChatInput
+          handleSubmit={handleSubmit}
+          status={status}
+          input={input}
           setInput={setInput}
           files={files}
           onFileSelect={handleFileSelect}
