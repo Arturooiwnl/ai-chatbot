@@ -11,6 +11,7 @@ import { BrainIcon, ChevronDownIcon } from 'lucide-react';
 import type { ComponentProps } from 'react';
 import { createContext, memo, useContext, useEffect, useState } from 'react';
 import { Response } from './response';
+import ShinyText from '../ui/shiny-text';
 
 type ReasoningContextValue = {
   isStreaming: boolean;
@@ -114,12 +115,12 @@ export type ReasoningTriggerProps = ComponentProps<typeof CollapsibleTrigger>;
 
 const getThinkingMessage = (isStreaming: boolean, duration?: number) => {
   if (isStreaming || duration === 0) {
-    return <p>Thinking...</p>;
+    return "Thinking...";
   }
   if (duration === undefined) {
-    return <p>Thought for a few seconds</p>;
+    return "Thought for a few seconds";
   }
-  return <p>Thought for {duration} seconds</p>;
+  return `Thought for ${duration} seconds`;
 };
 
 export const ReasoningTrigger = memo(
@@ -127,6 +128,7 @@ export const ReasoningTrigger = memo(
     const { isStreaming, isOpen, duration } = useReasoning();
 
     return (
+
       <CollapsibleTrigger
         className={cn(
           'flex w-full items-center gap-2 text-muted-foreground text-sm transition-colors hover:text-foreground cursor-pointer',
@@ -137,7 +139,17 @@ export const ReasoningTrigger = memo(
         {children ?? (
           <>
             <BrainIcon className="size-4" />
-            {getThinkingMessage(isStreaming, duration)}
+            {isStreaming ? (
+              <ShinyText 
+                text="Thinking..."
+                disabled={false} 
+                speed={1} 
+                className='custom-class' 
+              />
+            ) : (
+              getThinkingMessage(isStreaming, duration)
+            )
+          }
             <ChevronDownIcon
               className={cn(
                 'size-4 transition-transform',
