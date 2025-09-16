@@ -101,6 +101,7 @@
 }
 
 @theme inline {
+  --animate-shine: shine 1s linear infinite;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -169,4 +170,13 @@
 .scrollbar-hidden {
   scrollbar-color: transparent transparent;
   scrollbar-width: thin;
+}
+
+@keyframes shine {
+  0% {
+    background-position: 100%;
+  }
+  100% {
+    background-position: -100%;
+  }
 }
